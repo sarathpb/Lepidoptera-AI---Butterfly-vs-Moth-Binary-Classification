@@ -1,0 +1,97 @@
+{
+  "classical_rf": {
+    "model_type": "RandomForest_Morphological",
+    "val_accuracy": 1.0,
+    "duration_sec": 0.11,
+    "train_samples": 160,
+    "val_samples": 50,
+    "confusion_matrix": [
+      [
+        25,
+        0
+      ],
+      [
+        0,
+        25
+      ]
+    ]
+  },
+  "cnn": {
+    "model_type": "PyTorch_ButterflyMothCNN",
+    "best_val_accuracy": 1.0,
+    "epochs_trained": 12,
+    "history": {
+      "train_loss": [
+        0.6036,
+        0.4439,
+        0.3332,
+        0.2388,
+        0.2053,
+        0.172,
+        0.1418,
+        0.1209,
+        0.1069,
+        0.122,
+        0.1165,
+        0.0901
+      ],
+      "train_acc": [
+        0.7562,
+        0.9375,
+        0.9812,
+        1.0,
+        0.9875,
+        0.9938,
+        1.0,
+        1.0,
+        1.0,
+        0.9812,
+        1.0,
+        1.0
+      ],
+      "val_loss": [
+        0.6632,
+        0.5198,
+        0.3212,
+        0.2124,
+        0.152,
+        0.1247,
+        0.1152,
+        0.1073,
+        0.1014,
+        0.0956,
+        0.0864,
+        0.0823
+      ],
+      "val_acc": [
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "confusion_matrix": [
+      [
+        25,
+        0
+      ],
+      [
+        0,
+        25
+      ]
+    ],
+    "device": "cpu"
+  },
+  "classes": [
+    "butterfly",
+    "moth"
+  ]
+}

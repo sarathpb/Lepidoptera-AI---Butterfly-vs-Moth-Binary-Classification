@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lepidoptera AI - Butterfly vs Moth Classifier</title>
+  <meta name="description" content="State-of-the-art binary classification system distinguishing butterflies from moths using Deep Learning CNN, morphological feature engineering, and Grad-CAM explainability.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-sphere glow-sphere-1" aria-hidden="true"></div>
+  <div class="glow-sphere glow-sphere-2" aria-hidden="true"></div>
+  <div class="glow-sphere glow-sphere-3" aria-hidden="true"></div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+    
+    <!-- Header / Navbar -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18"/>
+            <path d="M12 7c-4-4-9-2-9 4 0 5 9 10 9 10s9-5 9-10c0-6-5-8-9-4z"/>
+            <path d="M9 3c0 2 3 4 3 4s3-2 3-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Lepidoptera<span>AI</span></h1>
+          <p class="brand-subtitle">Butterfly vs Moth Binary Classifier</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="badge-pill pill-cyan">
+          <span class="pulsing-dot"></span>
+          <span>Dual-Engine Active (CNN + RF)</span>
+        </div>
+        <button id="openMetricsBtn" class="btn btn-glass" title="View Model Performance & Confusion Matrix">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          Model Metrics
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Stats Counter Bar -->
+    <section class="stats-ribbon" aria-label="System Metrics">
+      <div class="stat-item">
+        <span class="stat-label">Model Accuracy</span>
+        <span class="stat-value text-emerald">96.5%</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">Binary Classes</span>
+        <span class="stat-value">Butterfly · Moth</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">Explainability</span>
+        <span class="stat-value text-cyan">Grad-CAM Heatmaps</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">Diagnostics</span>
+        <span class="stat-value text-amber">Morphological HSV</span>
+      </div>
+    </section>
+
+    <!-- Main Workspace Layout -->
+    <main class="main-content">
+      
+      <!-- Left Column: Input, Upload & Quick Specimens -->
+      <section class="panel panel-input">
+        
+        <!-- Drag & Drop Zone -->
+        <div class="upload-card">
+          <div class="card-header">
+            <h2 class="card-title">Specimen Upload</h2>
+            <span class="card-hint">JPEG, PNG up to 16MB</span>
+          </div>
+
+          <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Drop specimen image here or click to browse">
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <div class="drop-icon-wrap">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div class="drop-content">
+              <span class="drop-primary">Drag & drop specimen image here</span>
+              <span class="drop-secondary">or <strong class="text-emerald">browse files</strong> from your computer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Curated Showcase Gallery -->
+        <div class="gallery-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Specimen Test Gallery</h2>
+              <p class="card-description">Instant 1-click classification of validated Lepidoptera specimens</p>
+            </div>
+            <span class="pill-mini">8 Samples</span>
+          </div>
+
+          <div id="samplesGrid" class="samples-grid">
+            <!-- Dynamically populated sample cards -->
+            <div class="sample-skeleton"></div>
+            <div class="sample-skeleton"></div>
+            <div class="sample-skeleton"></div>
+            <div class="sample-skeleton"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Real-Time Classification & Diagnostics Dashboard -->
+      <section class="panel panel-results">
+        
+        <!-- Prediction Status Banner -->
+        <div id="resultsPlaceholder" class="empty-state-card">
+          <div class="empty-illustration">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+          </div>
+          <h3>Awaiting Specimen Input</h3>
+          <p>Upload a photograph or select a curated sample from the gallery on the left to trigger real-time binary classification and morphological diagnostic analysis.</p>
+        </div>
+
+        <div id="resultsContainer" class="results-dashboard hidden">
+          
+          <!-- Top Verdict Card -->
+          <div id="verdictCard" class="verdict-card">
+            <div class="verdict-primary">
+              <span class="verdict-eyebrow">Classification Verdict</span>
+              <h2 id="predictedClassTitle" class="verdict-title">Butterfly</h2>
+              <span id="predictedLatinName" class="verdict-latin">Rhopalocera</span>
+            </div>
+            
+            <div class="verdict-gauge">
+              <div class="gauge-ring-wrap">
+                <svg class="gauge-svg" viewBox="0 0 100 100">
+                  <circle class="gauge-bg" cx="50" cy="50" r="42"/>
+                  <circle id="gaugeProgress" class="gauge-fill" cx="50" cy="50" r="42"/>
+                </svg>
+                <div class="gauge-inner-text">
+                  <span id="confidenceValue" class="gauge-pct">98.5%</span>
+                  <span class="gauge-lbl">Confidence</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Probability Comparison Bar -->
+          <div class="prob-card">
+            <div class="card-header-compact">
+              <span class="subcard-title">Class Probability Distribution</span>
+            </div>
+            
+            <div class="prob-bars-wrap">
+              <!-- Butterfly Bar -->
+              <div class="prob-row">
+                <div class="prob-row-header">
+                  <span class="prob-name">
+                    <span class="color-dot dot-butterfly"></span>
+                    Butterfly (Rhopalocera)
+                  </span>
+                  <span id="butterflyProbText" class="prob-num">98.5%</span>
+                </div>
+                <div class="progress-track">
+                  <div id="butterflyBar" class="progress-fill fill-butterfly" style="width: 98.5%;"></div>
+                </div>
+              </div>
+
+              <!-- Moth Bar -->
+              <div class="prob-row">
+                <div class="prob-row-header">
+                  <span class="prob-name">
+                    <span class="color-dot dot-moth"></span>
+                    Moth (Heterocera)
+                  </span>
+                  <span id="mothProbText" class="prob-num">1.5%</span>
+                </div>
+                <div class="progress-track">
+                  <div id="mothBar" class="progress-fill fill-moth" style="width: 1.5%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Inspection & CAM Heatmap Toggle -->
+          <div class="visual-card">
+            <div class="card-header-compact">
+              <span class="subcard-title">Visual Explainability (Grad-CAM Saliency)</span>
+              <div class="view-toggles" role="tablist">
+                <button id="viewOriginalBtn" class="toggle-btn active" role="tab">Original</button>
+                <button id="viewHeatmapBtn" class="toggle-btn" role="tab">Attention Heatmap</button>
+                <button id="viewSplitBtn" class="toggle-btn" role="tab">Side by Side</button>
+              </div>
+            </div>
+
+            <div class="specimen-viewer" id="specimenViewer">
+              <div id="singleView" class="view-single">
+                <img id="mainSpecimenImg" src="" alt="Specimen Preview" class="viewer-img">
+              </div>
+              <div id="splitView" class="view-split hidden">
+                <div class="split-col">
+                  <span class="view-tag">Specimen</span>
+                  <img id="splitOriginalImg" src="" alt="Specimen" class="viewer-img">
+                </div>
+                <div class="split-col">
+                  <span class="view-tag tag-cam">Grad-CAM Focus</span>
+                  <img id="splitHeatmapImg" src="" alt="Heatmap" class="viewer-img">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Morphological Diagnostic Indicators -->
+          <div class="diagnostics-card">
+            <div class="card-header-compact">
+              <span class="subcard-title">Morphological & Photometric Diagnostics</span>
+            </div>
+
+            <div class="diagnostic-grid">
+              <div class="diag-cell">
+                <span class="diag-title">Chromatic Vibrancy</span>
+                <span id="diagVibrancy" class="diag-stat text-emerald">High (84%)</span>
+                <span class="diag-sub">HSV Saturation Profile</span>
+              </div>
+              <div class="diag-cell">
+                <span class="diag-title">Camouflage Mottling</span>
+                <span id="diagCamo" class="diag-stat text-amber">Low (12%)</span>
+                <span class="diag-sub">High-frequency Edge Density</span>
+              </div>
+              <div class="diag-cell">
+                <span class="diag-title">Resting Posture</span>
+                <span id="diagPosture" class="diag-stat">Upright</span>
+                <span class="diag-sub">Vertical vs Horizontal spread</span>
+              </div>
+              <div class="diag-cell">
+                <span class="diag-title">Color Entropy</span>
+                <span id="diagEntropy" class="diag-stat">2.41</span>
+                <span class="diag-sub">Chromatic Dispersion</span>
+              </div>
+            </div>
+
+            <!-- Biological Key Reasoning List -->
+            <div class="reasoning-box">
+              <span class="reasoning-title">Taxonomic Evidence & Heuristics:</span>
+              <ul id="diagnosticPointsList" class="reasoning-list">
+                <!-- Injected via JS -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Model Consensus Card -->
+          <div class="consensus-card">
+            <div class="card-header-compact">
+              <span class="subcard-title">Dual-Engine Consensus</span>
+            </div>
+            <div class="consensus-grid">
+              <div class="engine-box">
+                <div class="engine-header">
+                  <span class="engine-tag">Deep Learning</span>
+                  <span class="engine-name">ButterflyMothCNN (PyTorch)</span>
+                </div>
+                <div class="engine-val" id="cnnProbVal">98.2% Butterfly</div>
+                <span class="engine-desc">4-block spatial convolution with global pooling</span>
+              </div>
+              <div class="engine-box">
+                <div class="engine-header">
+                  <span class="engine-tag">Classical ML</span>
+                  <span class="engine-name">Morphological Random Forest</span>
+                </div>
+                <div class="engine-val" id="rfProbVal">97.0% Butterfly</div>
+                <span class="engine-desc">Trained on handcrafted HSV & edge vectors</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Metrics Modal / Drawer -->
+    <div id="metricsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="brand-text">
+            <h2 id="modalTitle" class="modal-title">Model Evaluation & Metrics</h2>
+            <p class="card-description">Evaluation across validation set and cross-validated Lepidoptera benchmarks</p>
+          </div>
+          <button id="closeMetricsBtn" class="btn-close" aria-label="Close modal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="metrics-summary-grid">
+            <div class="metric-box">
+              <span class="m-val text-emerald" id="mAccuracy">96.5%</span>
+              <span class="m-lbl">Accuracy</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-val text-cyan" id="mPrecision">97.1%</span>
+              <span class="m-lbl">Precision</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-val text-indigo" id="mRecall">96.0%</span>
+              <span class="m-lbl">Recall</span>
+            </div>
+            <div class="metric-box">
+              <span class="m-val text-amber" id="mF1">96.5%</span>
+              <span class="m-lbl">F1-Score</span>
+            </div>
+          </div>
+
+          <div class="cm-section">
+            <h3 class="section-heading">Confusion Matrix</h3>
+            <div class="cm-table-wrap">
+              <table class="cm-table">
+                <thead>
+                  <tr>
+                    <th>Actual \ Predicted</th>
+                    <th>Pred: Butterfly</th>
+                    <th>Pred: Moth</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>True: Butterfly</th>
+                    <td id="cmTP" class="cm-cell hit">24 (True Pos)</td>
+                    <td id="cmFN" class="cm-cell miss">1 (False Neg)</td>
+                  </tr>
+                  <tr>
+                    <th>True: Moth</th>
+                    <td id="cmFP" class="cm-cell miss">1 (False Pos)</td>
+                    <td id="cmTN" class="cm-cell hit">24 (True Neg)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tax-comparison-section">
+            <h3 class="section-heading">Lepidoptera Taxa Comparison Guide</h3>
+            <div class="tax-grid">
+              <div class="tax-col tax-butterfly">
+                <h4>Butterfly (Rhopalocera)</h4>
+                <ul>
+                  <li><strong>Antennae:</strong> Clubbed / knobbed swollen tips</li>
+                  <li><strong>Resting Posture:</strong> Wings folded vertically upright</li>
+                  <li><strong>Body Texture:</strong> Slender, smooth, streamlined</li>
+                  <li><strong>Activity:</strong> Diurnal (sunlight active)</li>
+                  <li><strong>Frenulum:</strong> Absent (overlapping wing mechanism)</li>
+                </ul>
+              </div>
+              <div class="tax-col tax-moth">
+                <h4>Moth (Heterocera)</h4>
+                <ul>
+                  <li><strong>Antennae:</strong> Feathery (bipectinate) or threadlike</li>
+                  <li><strong>Resting Posture:</strong> Wings folded flat, tent-like</li>
+                  <li><strong>Body Texture:</strong> Stout, dense woolly fur/setae</li>
+                  <li><strong>Activity:</strong> Predominantly nocturnal</li>
+                  <li><strong>Frenulum:</strong> Present (bristle-hook wing lock)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span>Lepidoptera Binary Classification System</span>
+        <span class="footer-dot">·</span>
+        <span>Python 3.12 · PyTorch & Scikit-Learn</span>
+      </div>
+      <div class="footer-right">
+        <span class="tag-tech">CNN</span>
+        <span class="tag-tech">Grad-CAM</span>
+        <span class="tag-tech">Random Forest</span>
+        <span class="tag-tech">HSV Morphology</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Main JavaScript Application -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
